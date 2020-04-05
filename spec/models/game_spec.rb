@@ -85,6 +85,30 @@ RSpec.describe Game, type: :model do
     it '.previous_level' do
       expect(game_w_questions.previous_level).to eq(game_w_questions.current_level - 1)
     end
+
+    # Рассмотрите случаи, когда ответ правильный,
+    # неправильный,
+    # последний (на миллион)
+    # и когда ответ дан после истечения времени
+    it '.answer_current_question!' do
+      q = game_w_questions.current_game_question
+      level = game_w_questions.current_level
+      current_level_max = Question::QUESTION_LEVELS.max
+
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(true)
+      expect(game_w_questions.current_level).to eq(level + 1)
+
+      expect(game_w_questions.answer_current_question!(5)).to eq(false )
+      expect(game_w_questions.current_level + 1).not_to eq(level + 1)
+
+      expect(game_w_questions.current_level = current_level_max).to eq(14)
+
+      game_w_questions.finished_at
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false )
+
+      game_w_questions.time_out!
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false )
+    end
   end
 
   # группа тестов на проверку статуса игры

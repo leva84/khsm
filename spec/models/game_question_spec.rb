@@ -26,12 +26,6 @@ RSpec.describe GameQuestion, type: :model do
     end
   end
 
-  context 'Mechanics game_question' do
-    it '.correct_answer_key' do
-      expect(game_question.correct_answer_key).to eq('b')
-    end
-  end
-
   # help_hash у нас имеет такой формат:
   # {
   #   fifty_fifty: ['a', 'b'], # При использовании подсказски остались варианты a и b
@@ -56,6 +50,21 @@ RSpec.describe GameQuestion, type: :model do
     it 'correct .level & .text delegates' do
       expect(game_question.text).to eq(game_question.question.text)
       expect(game_question.level).to eq(game_question.question.level)
+    end
+  end
+end
+
+describe '#correct_answer_key' do
+
+  let(:game_question) { FactoryGirl.create(:game_question, a: 2, b: 1, c: 4, d: 3) }
+
+  context 'verification of the correct key' do
+    it 'true key' do
+      expect(game_question.correct_answer_key).to eq('b')
+    end
+
+    it 'false key' do
+      expect(game_question.correct_answer_key).not_to eq('a')
     end
   end
 end

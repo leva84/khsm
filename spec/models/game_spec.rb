@@ -25,9 +25,9 @@ RSpec.describe Game, type: :model do
       expect {
         game = Game.create_game_for_user!(user)
       }.to change(Game, :count).by(1).and(# проверка: Game.count изменился на 1 (создали в базе 1 игру)
-        change(GameQuestion, :count).by(15).and(# GameQuestion.count +15
-          change(Question, :count).by(0) # Game.count не должен измениться
-        )
+          change(GameQuestion, :count).by(15).and(# GameQuestion.count +15
+              change(Question, :count).by(0) # Game.count не должен измениться
+          )
       )
       # проверяем статус и поля
       expect(game.user).to eq(user)
@@ -55,7 +55,6 @@ RSpec.describe Game, type: :model do
     end
   end
 
-
   # тесты на основную игровую логику
   context 'game mechanics' do
 
@@ -80,30 +79,6 @@ RSpec.describe Game, type: :model do
 
     it '.current_game_question' do
       expect(game_w_questions.current_game_question).to eq(game_w_questions.current_game_question)
-    end
-
-    # Рассмотрите случаи, когда ответ правильный,
-    # неправильный,
-    # последний (на миллион)
-    # и когда ответ дан после истечения времени
-    it '.answer_current_question!' do
-      q = game_w_questions.current_game_question
-      level = game_w_questions.current_level
-      current_level_max = Question::QUESTION_LEVELS.max
-
-      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(true)
-      expect(game_w_questions.current_level).to eq(level + 1)
-
-      expect(game_w_questions.answer_current_question!(5)).to eq(false )
-      expect(game_w_questions.current_level + 1).not_to eq(level + 1)
-
-      expect(game_w_questions.current_level = current_level_max).to eq(14)
-
-      game_w_questions.finished_at
-      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false )
-
-      game_w_questions.time_out!
-      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false )
     end
   end
 
@@ -146,6 +121,53 @@ describe '#previous_level' do
   context 'the previous question should be one level lower than the current' do
     it '.previous_level' do
       expect(game_w_questions.previous_level).to eq(game_w_questions.current_level - 1)
+    end
+  end
+end
+
+# Рассмотрите случаи, когда ответ правильный,
+# неправильный,
+# последний (на миллион)
+# и когда ответ дан после истечения времени
+describe '#answer_current_question!' do
+  # пользователь для создания игр
+  let(:user) { FactoryGirl.create(:user) }
+  # игра с прописанными игровыми вопросами
+  let(:game_w_questions) { FactoryGirl.create(:game_with_questions, user: user) }
+
+  context 'possible options for the method' do
+
+    it 'correct .answer_current_question!' do
+      q = game_w_questions.current_game_question
+      level = game_w_questions.current_level
+
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(true)
+      expect(game_w_questions.current_level).to eq(level + 1)
+    end
+
+    it 'not correct .answer_current_question!' do
+      level = game_w_questions.current_level
+
+      expect(game_w_questions.answer_current_question!(5)).to eq(false)
+      expect(game_w_questions.current_level).not_to eq(level + 1)
+    end
+
+    it 'last question' do
+      current_level_max = Question::QUESTION_LEVELS.max
+
+      expect(game_w_questions.current_level = current_level_max).to eq(14)
+    end
+
+    it 'time to answer expired' do
+      q = game_w_questions.current_game_question
+
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false) if game_w_questions.time_out!
+    end
+
+    it 'the game is over' do
+      q = game_w_questions.current_game_question
+
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false) if game_w_questions.finished_at
     end
   end
 end

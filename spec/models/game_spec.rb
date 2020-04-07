@@ -113,15 +113,11 @@ RSpec.describe Game, type: :model do
 end
 
 describe '#previous_level' do
-  # пользователь для создания игр
   let(:user) { FactoryGirl.create(:user) }
-  # игра с прописанными игровыми вопросами
   let(:game_w_questions) { FactoryGirl.create(:game_with_questions, user: user) }
 
-  context 'the previous question should be one level lower than the current' do
-    it '.previous_level' do
-      expect(game_w_questions.previous_level).to eq(game_w_questions.current_level - 1)
-    end
+  it 'returns the correct value of the previous level' do
+    expect(game_w_questions.previous_level).to eq(game_w_questions.current_level - 1)
   end
 end
 

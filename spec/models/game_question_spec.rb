@@ -55,16 +55,10 @@ RSpec.describe GameQuestion, type: :model do
 end
 
 describe '#correct_answer_key' do
-
   let(:game_question) { FactoryGirl.create(:game_question, a: 2, b: 1, c: 4, d: 3) }
 
-  context 'verification of the correct key' do
-    it 'true key' do
-      expect(game_question.correct_answer_key).to eq('b')
-    end
-
-    it 'false key' do
-      expect(game_question.correct_answer_key).not_to eq('a')
-    end
+  it 'returns correct key' do
+    expect(game_question.correct_answer_key).to eq('b')
+    expect(game_question.correct_answer_key).not_to eq('a')
   end
 end

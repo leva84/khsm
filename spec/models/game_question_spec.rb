@@ -59,6 +59,5 @@ describe '#correct_answer_key' do
 
   it 'returns correct key' do
     expect(game_question.correct_answer_key).to eq('b')
-    expect(game_question.correct_answer_key).not_to eq('a')
   end
 end

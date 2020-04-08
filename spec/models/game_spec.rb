@@ -76,10 +76,6 @@ RSpec.describe Game, type: :model do
       expect(game_w_questions.status).to eq(:in_progress)
       expect(game_w_questions.finished?).to be_falsey
     end
-
-    it '.current_game_question' do
-      expect(game_w_questions.current_game_question).to eq(game_w_questions.current_game_question)
-    end
   end
 
   # группа тестов на проверку статуса игры
@@ -121,6 +117,15 @@ describe '#previous_level' do
   end
 end
 
+describe 'current_game_question' do
+  let(:user) { FactoryGirl.create(:user) }
+  let(:game_w_questions) { FactoryGirl.create(:game_with_questions, user: user) }
+
+  it 'returns the correct value of the current level' do
+    expect(game_w_questions.current_game_question).to eq(game_w_questions.game_questions[0])
+  end
+end
+
 # Рассмотрите случаи, когда ответ правильный,
 # неправильный,
 # последний (на миллион)
@@ -133,7 +138,7 @@ describe '#answer_current_question!' do
 
   context 'possible options for the method' do
 
-    it 'correct .answer_current_question!' do
+    it 'correct answer' do
       q = game_w_questions.current_game_question
       level = game_w_questions.current_level
 
@@ -141,29 +146,30 @@ describe '#answer_current_question!' do
       expect(game_w_questions.current_level).to eq(level + 1)
     end
 
-    it 'not correct .answer_current_question!' do
+    it 'not correct answer' do
       level = game_w_questions.current_level
 
-      expect(game_w_questions.answer_current_question!(5)).to eq(false)
+      expect(game_w_questions.answer_current_question!('a')).to eq(false)
       expect(game_w_questions.current_level).not_to eq(level + 1)
     end
 
     it 'last question' do
       current_level_max = Question::QUESTION_LEVELS.max
+      level = game_w_questions.current_level
 
-      expect(game_w_questions.current_level = current_level_max).to eq(14)
+      expect(game_w_questions.answer_current_question!).to eq(
+                                                                   level + 1 &&
+                                                                   finish_game!(PRIZES[current_level_max])
+                                                             ) if game_w_questions.current_level == current_level_max
     end
 
     it 'time to answer expired' do
       q = game_w_questions.current_game_question
+      level = game_w_questions.current_level
 
       expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false) if game_w_questions.time_out!
-    end
 
-    it 'the game is over' do
-      q = game_w_questions.current_game_question
-
-      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false) if game_w_questions.finished_at
+      expect(game_w_questions.current_level).not_to eq(level + 1) if game_w_questions.time_out!
     end
   end
 end

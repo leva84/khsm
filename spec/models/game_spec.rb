@@ -143,13 +143,20 @@ describe '#answer_current_question!' do
       level = game_w_questions.current_level
 
       expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(true)
-      expect(game_w_questions.current_level).to eq(level + 1)
+      expect(game_w_questions.current_level).to eq(level += 1)
+      expect(game_w_questions.finished?).to eq(false)
+
+      if game_w_questions.finished?
+        expect(fire_proof_prize(level + 12)).to eq(32000)
+        expect(fire_proof_prize(level)).to eq(0)
+      end
     end
 
     it 'not correct answer' do
       level = game_w_questions.current_level
 
       expect(game_w_questions.answer_current_question!('a')).to eq(false)
+      expect(game_w_questions.finished?).to eq(true)
       expect(game_w_questions.current_level).not_to eq(level + 1)
     end
 
@@ -157,19 +164,27 @@ describe '#answer_current_question!' do
       current_level_max = Question::QUESTION_LEVELS.max
       level = game_w_questions.current_level
 
-      expect(game_w_questions.answer_current_question!).to eq(
-                                                                   level + 1 &&
-                                                                   finish_game!(PRIZES[current_level_max])
-                                                             ) if game_w_questions.current_level == current_level_max
+      if game_w_questions.current_level == current_level_max
+        expect(game_w_questions.answer_current_question!).to
+        eq(
+                level + 1 &&
+                finish_game!(PRIZES[current_level_max]) &&
+                game_w_questions.finished? == true
+        )
+
+        expect(fire_proof_prize(level)).to eq(1_000_000)
+      end
     end
 
     it 'time to answer expired' do
       q = game_w_questions.current_game_question
       level = game_w_questions.current_level
 
-      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false) if game_w_questions.time_out!
-
-      expect(game_w_questions.current_level).not_to eq(level + 1) if game_w_questions.time_out!
+      if game_w_questions.time_out!
+        expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false)
+        expect(game_w_questions.current_level).not_to eq(level + 1)
+        expect(fire_proof_prize(level + 5)).to eq(1_000)
+      end
     end
   end
 end

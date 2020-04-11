@@ -144,17 +144,17 @@ describe '#answer_current_question!' do
 
       expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(true)
       expect(game_w_questions.current_level).to eq(level + 1)
-      expect(game_w_questions.finished?).to eq(false)
       expect(game_w_questions.status).to eq(:in_progress)
+      expect(game_w_questions.finished?).to eq(false)
     end
 
     it 'not correct answer' do
       level = game_w_questions.current_level
 
       expect(game_w_questions.answer_current_question!('a')).to eq(false)
-      expect(game_w_questions.finished?).to eq(true)
       expect(game_w_questions.current_level).not_to eq(level + 1)
       expect(game_w_questions.status).to eq(:fail)
+      expect(game_w_questions.finished?).to eq(true)
     end
 
     it 'last question' do
@@ -166,10 +166,17 @@ describe '#answer_current_question!' do
       expect(game_w_questions.current_level).to eq(15)
       expect(game_w_questions.status).to eq(:won)
       expect(game_w_questions.prize).to eq(1_000_000)
+      expect(game_w_questions.finished?).to eq(true)
     end
 
     it 'time to answer expired' do
-      expect(game_w_questions.status).to eq(:timeout) if game_w_questions.time_out!
+      q = game_w_questions.current_game_question
+      game_w_questions.created_at -= 35.minutes
+
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false)
+      expect(game_w_questions.time_out!).to eq(true)
+      expect(game_w_questions.status).to eq(:timeout)
+      expect(game_w_questions.finished?).to eq(true)
     end
   end
 end

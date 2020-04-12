@@ -171,10 +171,9 @@ describe '#answer_current_question!' do
 
     it 'time to answer expired' do
       q = game_w_questions.current_game_question
-      game_w_questions.created_at -= 35.minutes
+      game_w_questions.created_at = 35.minutes.ago
 
       expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to eq(false)
-      expect(game_w_questions.time_out!).to eq(true)
       expect(game_w_questions.status).to eq(:timeout)
       expect(game_w_questions.finished?).to eq(true)
     end
